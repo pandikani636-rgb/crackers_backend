@@ -1,6 +1,14 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async ({ to, subject, html }) => {
+  console.log('[Mailer Config Check]:', {
+    SMTP_HOST: process.env.SMTP_HOST || 'undefined',
+    SMTP_PORT: process.env.SMTP_PORT || 'undefined',
+    SMTP_USER: process.env.SMTP_USER || 'undefined',
+    SMTP_PASS: process.env.SMTP_PASS ? 'PRESENT (hidden)' : 'MISSING',
+    SMTP_SECURE: process.env.SMTP_SECURE || 'undefined'
+  });
+
   const isSmtpConfigured = process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS;
 
   if (!isSmtpConfigured) {
