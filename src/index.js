@@ -1,73 +1,77 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const path = require("path");
+const fs = require("fs");
+require("dotenv").config();
 
-const connectDB = require('./config/db');
-const errorHandler = require('./middleware/error');
+const connectDB = require("./config/db");
+const errorHandler = require("./middleware/error");
 
-// Connect to Database
+// Connect Database
 connectDB();
 
 const app = express();
 
 // Security Middlewares
-app.use(helmet({
-  crossOriginResourcePolicy: false, // allows images to be loaded by frontend
-}));
-app.use(cors());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
-// Body parser
+app.use(cors());
 app.use(express.json());
 
-// Set up public uploads directory fallback
-const uploadsDir = path.join(__dirname, '../uploads');
+// Uploads Folder
+const uploadsDir = path.join(__dirname, "uploads");
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
 
-// Route Files
-const authRoutes = require('./routes/authRoutes');
-const productRoutes = require('./routes/productRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const couponRoutes = require('./routes/couponRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+app.use("/uploads", express.static(uploadsDir));
 
-// Mount Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/coupons', couponRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/admin', adminRoutes);
+// Routes
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/products", require("./routes/productRoutes"));
+app.use("/api/categories", require("./routes/categoryRoutes"));
+app.use("/api/orders", require("./routes/orderRoutes"));
+app.use("/api/coupons", require("./routes/couponRoutes"));
+app.use("/api/reviews", require("./routes/reviewRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
 
-// Base route
-app.get('/', (req, res) => {
-  res.json({
+// Home Route
+app.get("/", (req, res) => {
+  res.status(200).json({
     success: true,
-    message: 'Welcome to Sparklers Premium Fireworks API',
-    version: '1.0.0'
+    message: "Welcome to Sparklers Premium Fireworks API",
+    version: "1.0.0",
   });
 });
 
-// Central Error Handler
+// Error Handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Local Development Only
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+  const server = app.listen(PORT, () => {
+    console.log(`Server Running on Port ${PORT}`);
+  });
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.error(`Unhandled Rejection Error: ${err.message}`);
   // Close server & exit process
-  server.close(() => process.exit(1));
+  if (typeof server !== 'undefined') {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });
+
+// Export App for Vercel
+module.exports = app;
