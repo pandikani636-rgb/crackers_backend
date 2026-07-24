@@ -26,8 +26,12 @@ app.use(express.json());
 // Uploads Folder
 const uploadsDir = path.join(__dirname, "uploads");
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn("Uploads directory creation skipped:", err.message);
 }
 
 app.use("/uploads", express.static(uploadsDir));
