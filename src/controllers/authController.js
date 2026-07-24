@@ -23,37 +23,19 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-    // Create user (unverified by default)
+    // Create user (verified by default)
     const user = await User.create({
       name,
       email,
       password,
       phone,
-      otp,
-      otpExpires,
+      isVerified: true,
       role: email.includes('@sparklersadmin.com') ? 'admin' : 'customer', // automatic admin hook for easy testing
     });
 
-    // Send OTP Email
-    try {
-      const emailHtml = getOTPTemplate(otp);
-      await sendEmail({
-        to: user.email,
-        subject: 'Verify Your Sparklers Account',
-        html: emailHtml,
-      });
-      console.log(`[OTP Sent to ${user.email}]: ${otp}`); // Log to console for quick developer access
-    } catch (err) {
-      console.error('Email failed to send during signup:', err);
-    }
-
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Verification OTP sent to email.',
+      message: 'Registration successful! Please log in.',
       email: user.email,
     });
   } catch (error) {
