@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { getDashboardStats } = require('../controllers/adminController');
+const { getDashboardStats, getUsers, updateUserRole } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
 // Configure multer storage to backend/src/uploads
@@ -36,6 +36,8 @@ const upload = multer({
 });
 
 router.get('/dashboard-stats', protect, authorize('admin'), getDashboardStats);
+router.get('/users', protect, authorize('admin'), getUsers);
+router.put('/users/:id/role', protect, authorize('admin'), updateUserRole);
 
 router.post('/upload', protect, authorize('admin'), upload.single('image'), (req, res) => {
   if (!req.file) {

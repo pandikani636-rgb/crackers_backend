@@ -65,3 +65,47 @@ exports.getDashboardStats = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get all users (for roles management)
+// @route   GET /api/admin/users
+// @access  Private/Admin
+exports.getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({}, 'name email role createdAt');
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user role
+// @route   PUT /api/admin/users/:id/role
+// @access  Private/Admin
+exports.updateUserRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    if (!role) {
+      return res.status(400).json({ success: false, message: 'Please provide a role' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'User role updated successfully',
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

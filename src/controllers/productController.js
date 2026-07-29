@@ -6,7 +6,7 @@ const Category = require('../models/Category');
 // @access  Public
 exports.getProducts = async (req, res, next) => {
   try {
-    const { keyword, category, brand, priceMin, priceMax, rating, sort, page = 1, limit = 12 } = req.query;
+    const { keyword, category, subcategory, brand, priceMin, priceMax, rating, sort, page = 1, limit = 12 } = req.query;
 
     const query = {};
 
@@ -26,6 +26,20 @@ exports.getProducts = async (req, res, next) => {
           query.category = foundCategory._id;
         } else {
           query.category = null; // No match found
+        }
+      }
+    }
+
+    // Subcategory Filter
+    if (subcategory) {
+      if (subcategory.match(/^[0-9a-fA-F]{24}$/)) {
+        query.subcategory = subcategory;
+      } else {
+        const foundSubcategory = await require('../models/Subcategory').findOne({ name: { $regex: subcategory, $options: 'i' } });
+        if (foundSubcategory) {
+          query.subcategory = foundSubcategory._id;
+        } else {
+          query.subcategory = null;
         }
       }
     }
@@ -110,11 +124,12 @@ exports.getProductById = async (req, res, next) => {
 // @access  Private/Admin
 exports.createProduct = async (req, res, next) => {
   try {
-    const { name, category, brand, description, images, stock, originalPrice, discount, gst, isFeatured, isTopSelling, isTrending, isNewArrival } = req.body;
+    const { name, category, subcategory, brand, description, images, stock, originalPrice, discount, gst, isFeatured, isTopSelling, isTrending, isNewArrival } = req.body;
 
     const product = await Product.create({
       name,
       category,
+      subcategory,
       brand,
       description,
       images: images || ['/uploads/default-product.png'],
